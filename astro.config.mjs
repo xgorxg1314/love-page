@@ -4,7 +4,8 @@ import sitemap from '@astrojs/sitemap';
 import playformCompress from '@playform/compress';
 
 export default defineConfig({
-  site: 'https://love.example.com',
+  site: 'https://xgorxg1314.github.io',
+  base: '/love-page/',
   vite: {
     plugins: [tailwindcss()],
   },
