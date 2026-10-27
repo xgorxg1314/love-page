@@ -18,6 +18,7 @@ interface Props {
 const { title, config, locale = 'zh-CN', messages, alternateLocales = [] } = Astro.props;
 
 const motto = resolveMotto(config);
+const basePath = import.meta.env.BASE_URL;
 const siteUrl = config.siteUrl || 'https://love.example.com';
 const canonicalUrl = Astro.url.pathname === '/' ? siteUrl : `${siteUrl}${Astro.url.pathname}`;
 
@@ -87,7 +88,7 @@ const buildTime = new Date().toISOString();
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="msapplication-TileColor" content="#0a0a1a" />
     <meta name="msapplication-TileImage" content={siteLogo} />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href={`${basePath}manifest.webmanifest`} />
     <link rel="canonical" href={canonicalUrl} />
 
     {alternateLinks.map(({ code, href }) => (
@@ -111,7 +112,7 @@ const buildTime = new Date().toISOString();
     <meta name="twitter:image" content={siteImage} />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${basePath}favicon.svg`} />
     <link rel="icon" href={siteLogo} />
     <link rel="apple-touch-icon" href={siteLogo} />
     {iosStartupImages.map((item) =>
