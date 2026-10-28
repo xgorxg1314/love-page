@@ -13,6 +13,31 @@
   --section-gap: 2rem;
 }
 
+/* ═══════════════════════════════════════
+   ★ 配色区：想换配色，改下面这几行就够
+   弥散渐变四色来自参考图「弥散渐变 / ROMANTIC COLORS VOL.01」
+   ═══════════════════════════════════════ */
+[data-theme='light'] {
+  --rose: #e95d8a;
+  /* 玫瑰粉：主色，标题、按钮、强调数字 */
+  --peri: #837cda;
+  /* 长春花紫：辅助色，浅色主题里的「金色」位置 */
+  --sky: #a3d5f4;
+  /* 天蓝：背景光斑与点缀 */
+  --paper: #e9f3f8;
+  /* 冷白：卡片与兜底底色 */
+
+  --pink: var(--rose);
+  --pink-light: #f27ea4;
+  --pink-deep: #d24c79;
+  --pink-glow: rgba(233, 93, 138, 0.35);
+
+  /* 浅色主题里把「金色」位置换成长春花紫，避免金色和粉紫渐变打架 */
+  --gold: var(--peri);
+  --gold-soft: #a49df0;
+  --gold-glow: rgba(131, 124, 218, 0.28);
+}
+
 /* Tailwind v4 使用级联层：自定义 reset 需放入 @layer base，
    否则会覆盖 utility 类（如 px-4 py-8）的 padding */
 @layer base {
@@ -33,33 +58,42 @@ body {
 }
 
 [data-theme='light'] body {
-  background: #fffbfc;
-  /* 暖白色 */
+  background-color: var(--paper);
+  /* 弥散渐变：粉 / 紫 / 蓝 三色光斑铺在冷白底上，固定在视口（滚动时背景不动） */
+  background-image:
+    radial-gradient(58% 42% at 18% 6%, rgba(163, 213, 244, 0.95) 0%, rgba(163, 213, 244, 0) 72%),
+    radial-gradient(52% 38% at 82% 2%, rgba(233, 93, 138, 0.5) 0%, rgba(233, 93, 138, 0) 70%),
+    radial-gradient(64% 46% at 30% 30%, rgba(233, 93, 138, 0.66) 0%, rgba(233, 93, 138, 0) 74%),
+    radial-gradient(56% 42% at 92% 46%, rgba(131, 124, 218, 0.5) 0%, rgba(131, 124, 218, 0) 72%),
+    radial-gradient(62% 44% at 8% 72%, rgba(163, 213, 244, 0.88) 0%, rgba(163, 213, 244, 0) 74%),
+    radial-gradient(54% 40% at 68% 96%, rgba(233, 93, 138, 0.44) 0%, rgba(233, 93, 138, 0) 72%),
+    linear-gradient(160deg, #eaf5fc 0%, #f9ecf6 42%, #e8e3f8 70%, #eaf5fc 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: #2d2327;
   /* 暖深灰色，玫瑰黑 */
 }
 
 [data-theme='light'] .glass {
-  background: rgba(255, 255, 255, 0.85);
-  /* 提高白底不透明度 */
-  border-color: rgba(255, 107, 157, 0.12);
-  box-shadow: 0 4px 16px rgba(214, 143, 168, 0.08);
-  /* 增加柔和阴影 */
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(131, 124, 218, 0.14);
+  box-shadow: 0 10px 30px rgba(131, 124, 218, 0.12);
 }
 
 [data-theme='light'] .glass-gold {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: rgba(255, 215, 0, 0.2);
-  box-shadow: 0 4px 16px rgba(215, 185, 0, 0.1);
+  background: rgba(131, 124, 218, 0.1);
+  border-color: rgba(131, 124, 218, 0.22);
+  box-shadow: 0 8px 24px rgba(131, 124, 218, 0.1);
 }
 
 [data-theme='light'] .anniversary-soon {
-  border-color: rgba(255, 165, 0, 0.4) !important;
-  background: rgba(255, 215, 0, 0.15) !important;
+  border-color: rgba(131, 124, 218, 0.45) !important;
+  background: rgba(131, 124, 218, 0.14) !important;
 }
 
 [data-theme='light'] .hero-names {
-  background: linear-gradient(135deg, #2d2327 20%, var(--pink-deep) 80%);
+  /* 玫瑰→长春花紫，和背景渐变呼应；比原来的「黑→粉」柔和 */
+  background: linear-gradient(120deg, var(--rose) 8%, var(--peri) 92%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -167,7 +201,8 @@ body {
 }
 
 [data-theme='light'] #loader {
-  background: #fffbfc;
+  background-color: var(--paper);
+  background-image: linear-gradient(160deg, #eef7fc 0%, #f7eef7 48%, #ece9f9 100%);
 }
 
 [data-theme='light'] .loader-label {

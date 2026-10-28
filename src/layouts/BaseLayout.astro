@@ -80,13 +80,13 @@ const buildTime = new Date().toISOString();
     <meta name="author" content={`${config.boy} & ${config.girl}`} />
     <meta name="build-time" content={buildTime} />
     <meta name="robots" content={robots} />
-    <meta name="theme-color" content="#0a0a1a" />
+    <meta name="theme-color" content="#f2eef8" />
     <meta name="application-name" content={siteName} />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content={siteName} />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="msapplication-TileColor" content="#0a0a1a" />
+    <meta name="msapplication-TileColor" content="#f2eef8" />
     <meta name="msapplication-TileImage" content={siteLogo} />
     <link rel="manifest" href={`${basePath}manifest.webmanifest`} />
     <link rel="canonical" href={canonicalUrl} />
@@ -293,7 +293,7 @@ const buildTime = new Date().toISOString();
           document.documentElement.dataset.theme = theme;
           const meta = document.querySelector('meta[name="theme-color"]');
           if (meta) {
-            meta.setAttribute('content', theme === 'light' ? '#fffbfc' : '#0a0a1a');
+            meta.setAttribute('content', theme === 'light' ? '#f2eef8' : '#0a0a1a');
           }
         }
 

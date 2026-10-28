@@ -1048,14 +1048,14 @@
 }
 
 [data-theme='light'] .anniversary-next {
-  border-color: rgba(200, 140, 0, 0.45);
-  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(131, 124, 218, 0.38);
+  background: rgba(131, 124, 218, 0.07);
 }
 
-/* 浅色主题下金色渐变在奶油底上看不清，换成深琥珀色 */
+/* 浅色主题：原来的深琥珀在弥散渐变上看很脏，换成参考图的玫瑰→长春花紫 */
 [data-theme='light'] .anniversary-next .anniversary-text,
 [data-theme='light'] .anniversary-soon .anniversary-text {
-  background: linear-gradient(135deg, #a16207, #c2410c);
+  background: linear-gradient(135deg, #c8437a, #837cda);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -1483,8 +1483,8 @@
 }
 
 [data-theme='light'] .float-heart {
-  color: #b63c65;
-  opacity: 0.22;
+  color: var(--rose);
+  opacity: 0.16;
 }
 
 @keyframes floatDrift {
