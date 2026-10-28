@@ -47,30 +47,50 @@ const config = CONFIG;
   <Starfield />
   <FloatingHearts />
 
-  <main class="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8 main-content" style="gap: var(--section-gap);">
-    <Hero config={config} />
-    {config.sections?.todaySummary !== false && <TodaySummary config={config} messages={messages} />}
-    {config.sections?.stats !== false && <Stats config={config} messages={messages} />}
-    {config.sections?.timers !== false && (
-      <section class="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl flex flex-col items-center">
-        <h2 class="section-title reveal w-full">{messages.sections.timers}</h2>
-        <Timers config={config} messages={messages} />
-      </section>
-    )}
-    {config.sections?.timeline !== false && (
-      <section class="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl flex flex-col items-center">
-        <h2 class="section-title reveal w-full">{messages.sections.timeline}</h2>
-        <Timeline config={config} messages={messages} />
-      </section>
-    )}
-    {config.sections?.anniversary !== false && (
-      <section class="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl flex flex-col items-center">
-        <h2 class="section-title reveal w-full">{messages.sections.anniversary}</h2>
-        <Anniversary config={config} messages={messages} />
-      </section>
-    )}
-    {config.sections?.wishes !== false && config.wishes?.length && <WishList config={config} messages={messages} />}
-    <Footer config={config} messages={messages} />
+  <main class="relative z-10 min-h-screen flex flex-col items-center px-3 sm:px-4 py-10 main-content">
+    <div class="book-stack">
+      <div class="page page--cover">
+        <Hero config={config} />
+      </div>
+
+      {config.sections?.todaySummary !== false && (
+        <div class="page">
+          <TodaySummary config={config} messages={messages} />
+        </div>
+      )}
+      {config.sections?.stats !== false && (
+        <div class="page">
+          <Stats config={config} messages={messages} />
+        </div>
+      )}
+      {config.sections?.timers !== false && (
+        <section class="page">
+          <h2 class="section-title reveal w-full">{messages.sections.timers}</h2>
+          <Timers config={config} messages={messages} />
+        </section>
+      )}
+      {config.sections?.timeline !== false && (
+        <section class="page">
+          <h2 class="section-title reveal w-full">{messages.sections.timeline}</h2>
+          <Timeline config={config} messages={messages} />
+        </section>
+      )}
+      {config.sections?.anniversary !== false && (
+        <section class="page">
+          <h2 class="section-title reveal w-full">{messages.sections.anniversary}</h2>
+          <Anniversary config={config} messages={messages} />
+        </section>
+      )}
+      {config.sections?.wishes !== false && config.wishes?.length && (
+        <div class="page">
+          <WishList config={config} messages={messages} />
+        </div>
+      )}
+
+      <div class="page page--colophon">
+        <Footer config={config} messages={messages} />
+      </div>
+    </div>
   </main>
 
   {config.sections?.photoWall !== false && <PhotoWall config={config} messages={messages} />}

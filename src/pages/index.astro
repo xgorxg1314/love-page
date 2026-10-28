@@ -44,43 +44,63 @@ const sectionOrder = resolveSectionOrder(CONFIG);
   <Starfield />
   <FloatingHearts />
 
-  <main class="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8 main-content" style="gap: var(--section-gap);">
-    <Hero config={CONFIG} />
-    {sectionOrder.map((key) => {
-      if (sections[key] === false) return null;
-      switch (key) {
-        case 'todaySummary':
-          return <TodaySummary config={CONFIG} messages={messages} />;
-        case 'stats':
-          return <Stats config={CONFIG} messages={messages} />;
-        case 'timers':
-          return (
-            <section class="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl flex flex-col items-center">
-              <h2 class="section-title reveal w-full">{messages.sections.timers}</h2>
-              <Timers config={CONFIG} messages={messages} />
-            </section>
-          );
-        case 'timeline':
-          return (
-            <section class="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl flex flex-col items-center">
-              <h2 class="section-title reveal w-full">{messages.sections.timeline}</h2>
-              <Timeline config={CONFIG} messages={messages} />
-            </section>
-          );
-        case 'anniversary':
-          return (
-            <section class="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl flex flex-col items-center">
-              <h2 class="section-title reveal w-full">{messages.sections.anniversary}</h2>
-              <Anniversary config={CONFIG} messages={messages} />
-            </section>
-          );
-        case 'wishes':
-          return CONFIG.wishes?.length ? <WishList config={CONFIG} messages={messages} /> : null;
-        default:
-          return null;
-      }
-    })}
-    <Footer config={CONFIG} messages={messages} />
+  <main class="relative z-10 min-h-screen flex flex-col items-center px-3 sm:px-4 py-10 main-content">
+    <div class="book-stack">
+      <div class="page page--cover">
+        <Hero config={CONFIG} />
+      </div>
+
+      {sectionOrder.map((key) => {
+        if (sections[key] === false) return null;
+        switch (key) {
+          case 'todaySummary':
+            return (
+              <div class="page">
+                <TodaySummary config={CONFIG} messages={messages} />
+              </div>
+            );
+          case 'stats':
+            return (
+              <div class="page">
+                <Stats config={CONFIG} messages={messages} />
+              </div>
+            );
+          case 'timers':
+            return (
+              <section class="page">
+                <h2 class="section-title reveal w-full">{messages.sections.timers}</h2>
+                <Timers config={CONFIG} messages={messages} />
+              </section>
+            );
+          case 'timeline':
+            return (
+              <section class="page">
+                <h2 class="section-title reveal w-full">{messages.sections.timeline}</h2>
+                <Timeline config={CONFIG} messages={messages} />
+              </section>
+            );
+          case 'anniversary':
+            return (
+              <section class="page">
+                <h2 class="section-title reveal w-full">{messages.sections.anniversary}</h2>
+                <Anniversary config={CONFIG} messages={messages} />
+              </section>
+            );
+          case 'wishes':
+            return CONFIG.wishes?.length ? (
+              <div class="page">
+                <WishList config={CONFIG} messages={messages} />
+              </div>
+            ) : null;
+          default:
+            return null;
+        }
+      })}
+
+      <div class="page page--colophon">
+        <Footer config={CONFIG} messages={messages} />
+      </div>
+    </div>
   </main>
 
   {sections.photoWall !== false && <PhotoWall config={CONFIG} messages={messages} />}

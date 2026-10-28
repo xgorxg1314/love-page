@@ -280,10 +280,35 @@ function initWelcomeFlow(payload: AppPayload) {
   });
 }
 
+/**
+ * 书页入场（Safari / 不支持 animation-timeline 的浏览器走这条路）
+ * 支持滚动驱动动画的浏览器由 CSS 直接处理，这里不做任何事。
+ */
+function initBookPages() {
+  const pages = document.querySelectorAll<HTMLElement>('.page');
+  if (!pages.length) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (CSS.supports?.('animation-timeline: view()')) return;
+
+  document.documentElement.classList.add('book-anim');
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-turned');
+        observer.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+  );
+  pages.forEach((page) => observer.observe(page));
+}
+
 export function initAppEffects(options?: { payloadElementId?: string }) {
   const payload = readPayload(options?.payloadElementId || 'app-script-payload');
   initMotto(payload.quotes);
   initScrollReveal();
+  initBookPages();
   initClickHearts();
   initEasterEgg(payload.secretMessage, payload.i18n?.easterEgg?.close);
   initWelcomeFlow(payload);
