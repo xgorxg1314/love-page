@@ -23,7 +23,7 @@ const siteUrl = config.siteUrl || 'https://love.example.com';
 const canonicalUrl = Astro.url.pathname === '/' ? siteUrl : `${siteUrl}${Astro.url.pathname}`;
 
 // SEO with i18n support
-const seoKeywordsTemplate = messages?.seo?.keywordsTemplate || '情侣纪念日,结婚纪念日,恋爱时光,婚姻时光,{boy},{girl},{motto}';
+const seoKeywordsTemplate = messages?.seo?.keywordsTemplate || '情侣纪念日,恋爱时光,{boy},{girl},{motto}';
 const keywords = seoKeywordsTemplate
   .replace('{boy}', config.boy)
   .replace('{girl}', config.girl)

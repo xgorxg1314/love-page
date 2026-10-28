@@ -133,7 +133,7 @@ export const MESSAGES_ZH_CN: LocaleMessages = {
     },
   },
   seo: {
-    keywordsTemplate: '情侣纪念日,结婚纪念日,恋爱时光,婚姻时光,{boy},{girl},{motto}',
+    keywordsTemplate: '情侣纪念日,恋爱时光,恋爱天数,我们的故事,{boy},{girl},{motto}',
     descriptionTemplate: '{boy} 与 {girl} 的专属爱页面 · {motto}',
   },
   timers: {
