@@ -82,6 +82,8 @@ export function initBook() {
     if (counter) counter.textContent = String(visiblePage);
     if (prevBtn) prevBtn.disabled = current === 0;
     if (nextBtn) nextBtn.disabled = current >= leafCount;
+    // 还没翻开时整本只有封面，看起来是一本合着的相册
+    book.classList.toggle('is-closed', current === 0);
     stage.dataset.current = String(current);
     stage.dataset.progress = String(current / Math.max(1, leafCount));
   };
@@ -161,6 +163,11 @@ export function initBook() {
     if (Math.abs(dx) < 12 && Math.abs(dy) < 12 && elapsed < 700) {
       const rect = book.getBoundingClientRect();
       const ratio = (event.clientX - rect.left) / rect.width;
+      // 合着的时候点哪儿都是「翻开」
+      if (book.classList.contains('is-closed')) {
+        next();
+        return;
+      }
       // 左半边往回翻，右半边往后翻，跟翻真书一样
       if (ratio < 0.5) prev();
       else next();

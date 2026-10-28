@@ -63,7 +63,7 @@ export interface BookDef {
 export const BOOK: BookDef = {
   title: '我们的纪念册',
   subtitle: '从青丝到白发，从心动到心安',
-  hint: '轻触右侧翻页',
+  hint: '轻触翻开相册',
 
   pages: [
     {
