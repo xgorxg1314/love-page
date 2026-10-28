@@ -6,7 +6,9 @@
    ══════════════════════════════════════════════════════════════ */
 
 .book-stage {
-  --book-ratio: 0.78;
+  /* 单页的宽高比；整本书左右对开，所以整本比例 = 单页 × 2 */
+  --page-ratio: 0.72;
+  --book-ratio: 1.44;
   --paper-a: #fffdf8;
   --paper-b: #fbf2e8;
   --ink: #4a2f3a;
@@ -42,24 +44,40 @@
   --sheet-shadow: 0 26px 48px -26px rgba(0, 0, 0, 0.8), 0 8px 20px -14px rgba(0, 0, 0, 0.6);
 }
 
-/* 书本容器：横屏矮屏时用更宽的页面 */
+/* 书本容器：左右两页对开，书脊在正中 */
 .book {
   position: relative;
-  width: min(78vw, calc(72svh * var(--book-ratio)), 700px);
+  width: min(92vw, calc(80svh * var(--book-ratio)), 1080px);
   aspect-ratio: var(--book-ratio);
-  perspective: 2200px;
-  perspective-origin: 50% 45%;
+  perspective: 2400px;
+  perspective-origin: 50% 50%;
   transform-style: preserve-3d;
   touch-action: pan-y;
   user-select: none;
+  border-radius: 4px;
+  /* 环衬纸：没被纸盖住的地方（第一跨左边、最后一跨右边）露出来的底色 */
+  background-color: #fdf1f5;
+  background-image:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 62%),
+    radial-gradient(80% 60% at 50% 100%, rgba(226, 200, 240, 0.55), rgba(226, 200, 240, 0) 70%),
+    linear-gradient(160deg, #fff6fa 0%, #fceef4 55%, #f4ecfc 100%);
+  box-shadow: 0 34px 62px -36px rgba(90, 48, 74, 0.45);
+}
+
+[data-theme='dark'] .book {
+  background-color: #241c2b;
+  background-image:
+    radial-gradient(120% 80% at 50% 0%, rgba(120, 90, 130, 0.45), rgba(120, 90, 130, 0) 62%),
+    linear-gradient(160deg, #2c2233 0%, #271f2f 55%, #221b2c 100%);
+  box-shadow: 0 34px 62px -36px rgba(0, 0, 0, 0.8);
 }
 
 /* 桌面上的投影 */
 .book::after {
   content: '';
   position: absolute;
-  left: 6%;
-  right: -4%;
+  left: 3%;
+  right: 3%;
   bottom: -3.2%;
   height: 12%;
   border-radius: 50%;
@@ -69,21 +87,21 @@
   pointer-events: none;
 }
 
-/* ── 一张纸 ── */
+/* ── 一张纸：只占右半边，绕正中书脊转 ── */
 .leaf {
   position: absolute;
-  inset: 0;
+  inset: 0 0 0 50%;
   transform-origin: left center;
   transform-style: preserve-3d;
-  transition: transform 900ms cubic-bezier(0.33, 0.06, 0.24, 1);
+  transition: transform 1050ms cubic-bezier(0.3, 0.07, 0.22, 1);
   container-type: size;
   will-change: transform;
 }
 
-/* 翻过的页：停在左侧，按序号微微张开成扇形 */
+/* 翻过的页：落在左半边，按序号微微张开，像一叠真的纸 */
 .leaf.is-flipped {
   /* 越靠后的纸越往远处缩，形成可见的扇形叠页 */
-  transform: translateX(calc(var(--i) * -3px)) rotateY(calc(-180deg + (var(--i) * 0.9deg)));
+  transform: translateX(calc(var(--i) * -2px)) rotateY(calc(-180deg + (var(--i) * 0.55deg)));
 }
 
 .leaf-face {
@@ -95,22 +113,27 @@
   border-radius: 3px 9px 9px 3px;
 }
 
+/* 纸的切口一侧压一点暗，像真有厚度 */
 .leaf-front {
-  box-shadow: 0 8px 16px -14px rgba(90, 48, 74, 0.4);
+  box-shadow:
+    inset -18px 0 26px -22px rgba(90, 48, 74, 0.55),
+    0 8px 16px -14px rgba(90, 48, 74, 0.4);
 }
 
 .leaf-back {
   transform: rotateY(180deg);
   background: linear-gradient(180deg, var(--paper-a), var(--paper-b));
-  box-shadow: 0 8px 16px -14px rgba(90, 48, 74, 0.4);
+  box-shadow:
+    inset 18px 0 26px -22px rgba(90, 48, 74, 0.55),
+    0 8px 16px -14px rgba(90, 48, 74, 0.4);
 }
 
-/* 翻过去的纸堆：靠近切口的一侧压暗，像一叠真的纸 */
+/* 翻过去的纸堆：背面这页的书脊在右边，靠书脊一侧压暗 */
 .leaf-back::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(96, 52, 78, 0.16) 0, rgba(96, 52, 78, 0.04) 14%, rgba(96, 52, 78, 0) 32%);
+  background: linear-gradient(270deg, rgba(96, 52, 78, 0.09) 0, rgba(96, 52, 78, 0.03) 14%, rgba(96, 52, 78, 0) 30%);
   pointer-events: none;
 }
 
@@ -150,7 +173,26 @@
 }
 
 .leaf.is-turning .leaf-front::after {
-  opacity: 0.5;
+  animation: flipShade 1050ms ease forwards;
+}
+
+/* 被翻出的那一页：书脊一侧短暂压出一片阴影 */
+.leaf.is-revealing .leaf-front {
+  box-shadow: inset 42px 0 52px -40px rgba(90, 48, 74, 0.55), 0 8px 16px -14px rgba(90, 48, 74, 0.4);
+}
+
+@keyframes flipShade {
+  0% {
+    opacity: 0;
+  }
+
+  42% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 /* ── 纸面 ── */
@@ -181,98 +223,28 @@
   box-shadow: inset 0 0 3.2em rgba(120, 72, 96, 0.055);
 }
 
-/* 内嵌金色细边：文具感的关键 */
-.sheet::after {
-  content: '';
-  position: absolute;
-  inset: 3.4% 3.8% 4.4% 4%;
-  border: 1px solid var(--gold-line);
-  border-radius: 2px;
-  pointer-events: none;
-  opacity: 0.8;
-}
 
-/* 四角花饰 */
-.corner {
-  position: absolute;
-  width: 1.5em;
-  height: 1.5em;
-  border-color: var(--gold-line);
-  border-style: solid;
-  border-width: 0;
-  opacity: 0.9;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.corner--tl {
-  top: 2.5%;
-  left: 2.9%;
-  border-top-width: 1px;
-  border-left-width: 1px;
-}
-
-.corner--tr {
-  top: 2.5%;
-  right: 2.7%;
-  border-top-width: 1px;
-  border-right-width: 1px;
-}
-
-.corner--bl {
-  bottom: 3.4%;
-  left: 2.9%;
-  border-bottom-width: 1px;
-  border-left-width: 1px;
-}
-
-.corner--br {
-  bottom: 3.4%;
-  right: 2.7%;
-  border-bottom-width: 1px;
-  border-right-width: 1px;
-}
-
-/* 书签丝带 */
-.ribbon {
-  position: absolute;
-  top: -0.6%;
-  right: 47%;
-  width: 0.78em;
-  height: 3.5em;
-  background: linear-gradient(180deg, #e7a3bd 0%, #d2739a 52%, #b8557c 100%);
-  clip-path: polygon(0 0, 100% 0, 100% 86%, 50% 100%, 0 86%);
-  box-shadow: 0.1em 0.16em 0.45em rgba(120, 40, 70, 0.22);
-  z-index: 4;
-  pointer-events: none;
-}
-
-/* 手绘涂鸦 */
-.doodle {
-  position: absolute;
-  left: 4.4%;
-  bottom: 6%;
-  width: 3em;
-  height: 3em;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%23c8437a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M30 50c-9-6.5-18-14-18-23a10 10 0 0 1 18-4.4A10 10 0 0 1 48 27c0 9-9 16.5-18 23z'/%3E%3Cpath d='M50 12l1.8 4.6 4.6 1.8-4.6 1.8L50 25l-1.8-4.8L43.6 18.4l4.6-1.8z'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0.38;
-  pointer-events: none;
-  transform: rotate(-8deg);
-  z-index: 2;
-}
-
-/* 书脊一侧的暗影 */
+/* 书脊一侧的暗影：正面这页书脊在左，背面那页书脊在右 */
 .sheet::before {
   content: '';
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
-  width: 6.5%;
-  background: linear-gradient(90deg, rgba(96, 52, 78, 0.16), rgba(96, 52, 78, 0));
+  width: 10%;
+  background: linear-gradient(90deg, rgba(96, 52, 78, 0.28), rgba(96, 52, 78, 0.07) 45%, rgba(96, 52, 78, 0));
   pointer-events: none;
+}
+
+.leaf-back .sheet::before {
+  left: auto;
+  right: 0;
+  background: linear-gradient(270deg, rgba(96, 52, 78, 0.28), rgba(96, 52, 78, 0.07) 45%, rgba(96, 52, 78, 0));
+}
+
+/* 背面那页的版心要镜像：书脊在右，内侧留白换到右边 */
+.leaf-back .sheet {
+  padding: 7.5% 9.5% 9% 8%;
 }
 
 /* 胶带 */
@@ -364,56 +336,120 @@
   pointer-events: none;
 }
 
-/* ── 封面 ── */
+/* ── 封面：奶油粉紫 + 蝴蝶结，不用描边线条 ── */
 .cover {
+  position: relative;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-card {
+  position: relative;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.9em;
+  gap: 0.55em;
+  padding: 2.4em 1.6em 2em;
   text-align: center;
+  border-radius: 1.5em;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.72));
+  box-shadow:
+    0 24px 44px -28px rgba(178, 86, 126, 0.55),
+    0 6px 14px -10px rgba(178, 86, 126, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* 卡片顶上的蝴蝶结 */
+.cover-bow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -54%);
+  font-size: 2em;
+  line-height: 1;
+  filter: drop-shadow(0 5px 7px rgba(178, 86, 126, 0.26));
 }
 
 .cover-kicker {
-  font-size: 0.78em;
-  letter-spacing: 0.55em;
+  font-size: 0.74em;
+  letter-spacing: 0.5em;
   color: var(--ink-faint);
 }
 
 .cover-names {
   font-family: 'Ma Shan Zheng', 'Songti SC', serif;
-  font-size: 3.2em;
+  font-size: 2.85em;
   line-height: 1.15;
   color: var(--accent);
   letter-spacing: 0.04em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .cover-heart {
   display: inline-block;
-  margin: 0 0.18em;
-  font-size: 0.72em;
-  color: var(--accent-2);
+  margin: 0 0.16em;
+  font-size: 0.66em;
+  color: #ef8fb5;
 }
 
 .cover-sub {
-  font-size: 1.02em;
+  font-size: 0.94em;
   color: var(--ink-soft);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
 
 .cover-date {
-  font-size: 0.8em;
+  font-size: 0.76em;
   color: var(--ink-faint);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
 }
 
 .cover-hint {
-  margin-top: 1.4em;
-  font-size: 0.85em;
+  margin-top: 0.7em;
+  font-size: 0.8em;
   color: var(--accent);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   animation: hintPulse 2.6s ease-in-out infinite;
+}
+
+/* 飘着的小贴纸 */
+.cover-float {
+  position: absolute;
+  font-size: 1.05em;
+  opacity: 0.85;
+  pointer-events: none;
+  animation: coverFloat 5.5s ease-in-out infinite;
+}
+
+.cover-float--1 {
+  top: 10%;
+  left: 8%;
+}
+
+.cover-float--2 {
+  top: 16%;
+  right: 10%;
+  animation-delay: -1.8s;
+}
+
+.cover-float--3 {
+  bottom: 12%;
+  right: 16%;
+  animation-delay: -3.4s;
+}
+
+@keyframes coverFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+
+  50% {
+    transform: translateY(-9px) rotate(5deg);
+  }
 }
 
 @keyframes hintPulse {
@@ -427,35 +463,32 @@
   }
 }
 
-/* ── 封面：稍微隆重的米金纸 ── */
+/* 封面纸：奶油 → 粉 → 淡紫的柔和渐变，撒一层小白点 */
 .sheet--cover {
   background-image:
-    radial-gradient(120% 80% at 50% -10%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 60%),
-    radial-gradient(90% 70% at 100% 100%, rgba(196, 148, 190, 0.16), rgba(196, 148, 190, 0) 60%),
-    radial-gradient(90% 70% at 0% 100%, rgba(220, 180, 140, 0.14), rgba(220, 180, 140, 0) 60%),
-    linear-gradient(165deg, #fffaf2 0%, #fbf1ea 52%, #f7ecf3 100%);
+    radial-gradient(circle, rgba(255, 255, 255, 0.85) 1.5px, transparent 1.6px),
+    radial-gradient(120% 90% at 18% 0%, #fff8fc 0%, rgba(255, 248, 252, 0) 58%),
+    radial-gradient(100% 80% at 100% 100%, #efe7ff 0%, rgba(239, 231, 255, 0) 62%),
+    radial-gradient(90% 70% at 0% 100%, #ffeef5 0%, rgba(255, 238, 245, 0) 60%),
+    linear-gradient(165deg, #fffaf6 0%, #ffeef4 50%, #f5edff 100%);
+  background-size: 22px 22px, auto, auto, auto, auto;
 }
 
 .sheet--cover::after {
   content: none;
 }
 
-.sheet--cover .cover {
-  border: 1px solid var(--gold-line);
-  border-radius: 3px;
-  padding: 1.6em 1.1em;
-  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.5);
+[data-theme='dark'] .sheet--cover {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.055) 1.5px, transparent 1.6px),
+    radial-gradient(120% 90% at 18% 0%, rgba(96, 66, 98, 0.9) 0%, rgba(96, 66, 98, 0) 58%),
+    linear-gradient(165deg, #2d2334 0%, #34213a 50%, #241d33 100%);
+  background-size: 22px 22px, auto, auto;
 }
 
-.sheet--cover .cover-names {
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
-}
-
-.sheet--cover .ribbon,
-.sheet--colophon .ribbon,
-.sheet--cover .doodle,
-.sheet--colophon .doodle {
-  display: none;
+[data-theme='dark'] .cover-card {
+  background: linear-gradient(180deg, rgba(62, 48, 68, 0.94), rgba(46, 36, 54, 0.78));
+  box-shadow: 0 24px 44px -28px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* ── 版权页 ── */
@@ -934,16 +967,11 @@
   }
 }
 
-/* 横屏矮屏：页面改成横向铺开 */
+/* 横屏矮屏：页面铺满可用宽度 */
 @media (orientation: landscape) and (max-height: 620px) {
-  .book-stage {
-    --book-ratio: 1.74;
-  }
-
   /* 横屏手机：让页面铺满可用宽度 */
   .book {
     width: min(92vw, calc(88svh * var(--book-ratio)));
-    margin-left: 0;
   }
 
   .sheet {
@@ -952,6 +980,10 @@
 
   .sheet {
     padding: 4.5% 6% 7% 6.5%;
+  }
+
+  .leaf-back .sheet {
+    padding: 4.5% 6.5% 7% 6%;
   }
 
   .sheet-head {
@@ -964,7 +996,11 @@
   }
 
   .cover-names {
-    font-size: 2.6em;
+    font-size: 2.1em;
+  }
+
+  .cover-card {
+    padding: 1.6em 1.1em 1.3em;
   }
 
   /* 横屏矮页：内容排得更紧，避免被裁掉 */
@@ -998,19 +1034,6 @@
   }
 }
 
-/* 平板/桌面适中高度 */
-@media (min-width: 900px) {
-  .book {
-    margin-left: 5vw;
-  }
-}
-
-@media (min-width: 1024px) and (min-height: 700px) {
-  .book-stage {
-    --book-ratio: 0.76;
-  }
-}
-
 /* 减少动态 */
 @media (prefers-reduced-motion: reduce) {
   .leaf {
@@ -1018,6 +1041,7 @@
   }
 
   .cover-hint,
+  .cover-float,
   .rotate-icon {
     animation: none;
   }

@@ -27,6 +27,19 @@ const stats = [...autoStats, ...(config.stats ?? [])].slice(0, 5);
 const pages = BOOK.pages;
 const total = pages.length;
 
+/**
+ * 真书是「一张纸 = 正反两页」：
+ *   纸 0 正面 = 第 1 页，背面 = 第 2 页
+ *   纸 1 正面 = 第 3 页，背面 = 第 4 页
+ * 这样翻过去以后，左边那页就是刚翻过那张纸的背面，不再是空白。
+ */
+const leaves = Array.from({ length: Math.ceil(total / 2) }, (_, i) => ({
+  front: pages[i * 2],
+  frontIndex: i * 2,
+  back: pages[i * 2 + 1] as (typeof pages)[number] | undefined,
+  backIndex: i * 2 + 1,
+}));
+
 function daysSince(dateStr: string): number {
   const [y, m, d] = (dateStr || '').split('-').map(Number);
   if (!y || !m || !d) return 0;
@@ -37,32 +50,43 @@ function daysSince(dateStr: string): number {
 }
 
 const daysSinceLove = daysSince(config.loveDate);
+
+/** 正反两页共用的 props */
+const shared = {
+  book: BOOK,
+  config,
+  messages,
+  total,
+  timers,
+  anniversaries,
+  quotes,
+  stats,
+  daysSinceLove,
+};
 ---
 
-<section class="book-stage" id="bookStage" data-book-stage data-total={total}>
+<section
+  class="book-stage"
+  id="bookStage"
+  data-book-stage
+  data-total={total}
+  data-leaves={leaves.length}
+>
   <div class="book" id="book" data-book>
-    {pages.map((page, i) => (
-      <div class="leaf" data-leaf={i} style={`--i:${i};--z:${total - i}`}>
+    {leaves.map((leaf, i) => (
+      <div class="leaf" data-leaf={i} style={`--i:${i};--z:${leaves.length - i}`}>
         <div class="leaf-face leaf-front">
-          <PageBody
-            page={page}
-            book={BOOK}
-            config={config}
-            messages={messages}
-            index={i}
-            total={total}
-            timers={timers}
-            anniversaries={anniversaries}
-            quotes={quotes}
-            stats={stats}
-            daysSinceLove={daysSinceLove}
-          />
+          <PageBody {...shared} page={leaf.front} index={leaf.frontIndex} />
         </div>
-        <div class="leaf-face leaf-back" aria-hidden="true">
-          <div class="back-sheet">
-            <span class="back-mark">❦</span>
-            <span class="back-num">{i + 1}</span>
-          </div>
+        <div class="leaf-face leaf-back">
+          {leaf.back ? (
+            <PageBody {...shared} page={leaf.back} index={leaf.backIndex} />
+          ) : (
+            <div class="back-sheet" aria-hidden="true">
+              <span class="back-mark">❦</span>
+              <span class="back-num">{leaf.backIndex + 1}</span>
+            </div>
+          )}
         </div>
       </div>
     ))}

@@ -48,25 +48,25 @@ const quote = quotesList[index % quotesList.length];
 ---
 
 <article class:list={['sheet', `sheet--${page.kind}`]} data-page-index={index}>
-  <span class="corner corner--tl" aria-hidden="true"></span>
-  <span class="corner corner--tr" aria-hidden="true"></span>
-  <span class="corner corner--bl" aria-hidden="true"></span>
-  <span class="corner corner--br" aria-hidden="true"></span>
-  <span class="ribbon" aria-hidden="true"></span>
-    {tape === 'left' || tape === 'both' ? <span class="tape tape--l" aria-hidden="true"></span> : null}
+  {tape === 'left' || tape === 'both' ? <span class="tape tape--l" aria-hidden="true"></span> : null}
   {tape === 'right' || tape === 'both' ? <span class="tape tape--r" aria-hidden="true"></span> : null}
   {sticker ? <span class="sticker" aria-hidden="true">{sticker}</span> : null}
-  <span class="doodle" aria-hidden="true"></span>
 
   {page.kind === 'cover' ? (
     <div class="cover">
-      <p class="cover-kicker">{book.title}</p>
-      <h1 class="cover-names">
-        {config.boy}<span class="cover-heart">♥</span>{config.girl}
-      </h1>
-      {book.subtitle ? <p class="cover-sub">{book.subtitle}</p> : null}
-      <p class="cover-date">始于 {prettyDate(config.loveDate)}</p>
-      {book.hint ? <p class="cover-hint">{book.hint} ›</p> : null}
+      <span class="cover-float cover-float--1" aria-hidden="true">💗</span>
+      <span class="cover-float cover-float--2" aria-hidden="true">✨</span>
+      <span class="cover-float cover-float--3" aria-hidden="true">🌸</span>
+      <div class="cover-card">
+        <span class="cover-bow" aria-hidden="true">🎀</span>
+        <p class="cover-kicker">{book.title}</p>
+        <h1 class="cover-names">
+          {config.boy}<span class="cover-heart">♥</span>{config.girl}
+        </h1>
+        {book.subtitle ? <p class="cover-sub">{book.subtitle}</p> : null}
+        <p class="cover-date">始于 {prettyDate(config.loveDate)}</p>
+        {book.hint ? <p class="cover-hint">{book.hint} ›</p> : null}
+      </div>
     </div>
   ) : page.kind === 'colophon' ? (
     <div class="closing">

@@ -1,8 +1,9 @@
 /**
- * 手账本翻页引擎
+ * 手账本翻页引擎（左右对开）
  *
- * 结构：每个 .leaf 是一张纸，正反两面；绕左边书脊旋转 -180°。
- * 翻过的纸留在左侧叠成扇形，当前页就是第一张没翻的纸。
+ * 结构：每个 .leaf 是一张纸，正反两面各印一页内容；纸只占右半边，
+ * 绕正中书脊旋转 -180°，翻过去正好落在左半边，左边那页就是它的背面。
+ * 所以「当前跨页」= 左边第 current-1 张的背面 + 右边第 current 张的正面。
  */
 
 function pad2(n: number): string {
@@ -55,9 +56,13 @@ export function initBook() {
   if (!stage || !book) return;
 
   const leaves = Array.from(book.querySelectorAll<HTMLElement>('.leaf'));
-  const total = leaves.length;
-  if (!total) return;
+  const leafCount = leaves.length;
+  if (!leafCount) return;
 
+  /** 总页数（不是纸张数），用于底部「N / 总页数」 */
+  const totalPages = Number(stage.dataset.total) || leafCount * 2;
+
+  /** current = 已经翻过去的纸张数，范围 0 ~ leafCount */
   let current = 0;
   let locked = false;
 
@@ -69,32 +74,34 @@ export function initBook() {
     leaves.forEach((leaf, i) => {
       const flipped = i < current;
       leaf.classList.toggle('is-flipped', flipped);
-      leaf.style.zIndex = flipped ? String(10 + i) : String(100 + (total - i));
+      leaf.style.zIndex = flipped ? String(10 + i) : String(100 + (leafCount - i));
       leaf.style.setProperty('--turn', flipped ? '1' : '0');
     });
-    if (counter) counter.textContent = String(Math.min(current + 1, total));
+    // 当前跨页里最大的那个页码
+    const visiblePage = Math.min(totalPages, current * 2 + 1);
+    if (counter) counter.textContent = String(visiblePage);
     if (prevBtn) prevBtn.disabled = current === 0;
-    if (nextBtn) nextBtn.disabled = current >= total - 1;
+    if (nextBtn) nextBtn.disabled = current >= leafCount;
     stage.dataset.current = String(current);
-    stage.dataset.progress = String(current / Math.max(1, total - 1));
+    stage.dataset.progress = String(current / Math.max(1, leafCount));
   };
 
   const markTurning = (index: number) => {
     const leaf = leaves[index];
     if (!leaf) return;
     leaf.classList.add('is-turning');
-    window.setTimeout(() => leaf.classList.remove('is-turning'), 900);
+    window.setTimeout(() => leaf.classList.remove('is-turning'), 1100);
   };
 
   const next = () => {
-    if (locked || current >= total - 1) return;
+    if (locked || current >= leafCount) return;
     locked = true;
     markTurning(current);
     current += 1;
     render();
     window.setTimeout(() => {
       locked = false;
-    }, 620);
+    }, 700);
   };
 
   const prev = () => {
@@ -105,7 +112,7 @@ export function initBook() {
     render();
     window.setTimeout(() => {
       locked = false;
-    }, 620);
+    }, 700);
   };
 
   // 翻页阴影跟随动画
@@ -154,8 +161,8 @@ export function initBook() {
     if (Math.abs(dx) < 12 && Math.abs(dy) < 12 && elapsed < 700) {
       const rect = book.getBoundingClientRect();
       const ratio = (event.clientX - rect.left) / rect.width;
-      if (ratio > 0.62) next();
-      else if (ratio < 0.34) prev();
+      // 左半边往回翻，右半边往后翻，跟翻真书一样
+      if (ratio < 0.5) prev();
       else next();
     }
   });
@@ -178,7 +185,7 @@ export function initBook() {
       current = 0;
       render();
     } else if (event.key === 'End') {
-      current = total - 1;
+      current = leafCount;
       render();
     }
   });
