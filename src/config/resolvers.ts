@@ -1,3 +1,4 @@
+import { withBaseUrl } from './base';
 import type {
   AnniversaryMark,
   Config,
@@ -67,7 +68,7 @@ function resolveTracks(tracks: unknown): MusicTrack[] {
     if (seen.has(key)) continue;
     seen.add(key);
 
-    const track: MusicTrack = { id, src, title };
+    const track: MusicTrack = { id, src: withBaseUrl(src), title };
 
     const artist = typeof item.artist === 'string' ? item.artist.trim() : '';
     if (artist) track.artist = artist;
@@ -141,7 +142,7 @@ function normalizeAssetUrl(siteUrl: string, value?: string): string | null {
   const normalizedValue = value?.trim();
   if (!normalizedValue) return null;
   if (normalizedValue.startsWith('http')) return normalizedValue;
-  return `${siteUrl}${normalizedValue.startsWith('/') ? '' : '/'}${normalizedValue}`;
+  return `${siteUrl}${withBaseUrl(normalizedValue)}`;
 }
 
 export function resolveSiteImage(config: Pick<Config, 'siteUrl' | 'siteImage' | 'photos'>): string {
@@ -154,7 +155,7 @@ export function resolveSiteImage(config: Pick<Config, 'siteUrl' | 'siteImage' | 
     if (imageByPhoto) return imageByPhoto;
   }
 
-  return `${siteUrl}/og.png`;
+  return `${siteUrl}${withBaseUrl('/og.png')}`;
 }
 
 export function resolveSiteLogo(config: Pick<Config, 'siteUrl' | 'siteLogo' | 'siteImage' | 'photos'>): string {

@@ -1,5 +1,6 @@
 ---
 import type { Config } from '../config';
+import { withBaseUrl } from '../config/base';
 import type { LocaleMessages } from '../i18n/utils';
 import { DEFAULT_MESSAGES } from '../i18n/utils';
 
@@ -10,6 +11,8 @@ interface Props {
 
 const { config, messages } = Astro.props;
 const showPhotoWall = !!config.photos?.length;
+// 站内相对路径自动补 base（/love-page/），完整网址原样保留
+const photos = (config.photos ?? []).map((p) => ({ ...p, url: withBaseUrl(p.url) }));
 const defaultPhotoWallLabels = DEFAULT_MESSAGES.photoWall;
 const ui = {
   title: messages?.photoWall?.title || defaultPhotoWallLabels.title,
@@ -29,7 +32,7 @@ const ui = {
         </button>
         <h3 class="photo-wall-title">📷 {ui.title}</h3>
         <div class="photo-wall-grid" id="photoWallGrid">
-          {config.photos.map((p, i) => (
+          {photos.map((p, i) => (
             <div class="photo-wall-item reveal" style={`--i: ${i}`} data-url={p.url} data-caption={p.caption ?? ''} data-index={i} role="button" tabindex="0">
               <img src={p.url} alt={p.caption ?? ''} loading="lazy" />
               {p.caption && <span class="photo-wall-caption">{p.caption}</span>}
@@ -42,7 +45,7 @@ const ui = {
 )}
 
 {showPhotoWall && (
-  <script define:vars={{ photos: config.photos, uiLabels: ui }}>
+  <script define:vars={{ photos, uiLabels: ui }}>
       document.addEventListener('DOMContentLoaded', () => {
         const entry = document.getElementById('photoWallEntry');
         const overlay = document.getElementById('photoWallOverlay');

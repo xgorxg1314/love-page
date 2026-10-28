@@ -38,18 +38,19 @@ export function GET(): Response {
   const logoSrc = resolveSiteLogo(CONFIG);
   const imageSrc = resolveSiteImage(CONFIG);
 
+  const base = import.meta.env.BASE_URL || '/';
   const manifest = {
-    id: '/',
+    id: base,
     name: siteName,
     short_name: shortName,
     description,
     lang: 'zh-CN',
-    start_url: '/',
-    scope: '/',
+    start_url: base,
+    scope: base,
     display: 'standalone',
     orientation: 'portrait',
-    theme_color: '#0a0a1a',
-    background_color: '#0a0a1a',
+    theme_color: '#f2eef8',
+    background_color: '#f2eef8',
     icons: buildIcons(logoSrc, imageSrc),
     prefer_related_applications: false,
   };

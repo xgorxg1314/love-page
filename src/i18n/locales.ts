@@ -6,6 +6,7 @@
  * - LOCALE_SLUGS: URL 路径段（小写）
  * - DEFAULT_LOCALE: 默认语言
  */
+import { withBaseUrl } from '../config/base';
 
 export const LOCALE_CODES = ['zh-CN', 'en-US'] as const;
 export type LocaleCode = (typeof LOCALE_CODES)[number];
@@ -38,5 +39,6 @@ export function getLocaleSlug(code: LocaleCode): string {
 }
 
 export function getLocalePath(code: LocaleCode): string {
-  return code === DEFAULT_LOCALE ? '/' : `/${getLocaleSlug(code)}/`;
+  // 带上部署前缀（/love-page/），否则 hreflang 会指向不存在的根路径
+  return withBaseUrl(code === DEFAULT_LOCALE ? '/' : `/${getLocaleSlug(code)}/`);
 }
