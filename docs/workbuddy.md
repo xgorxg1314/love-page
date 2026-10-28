@@ -25,8 +25,8 @@
 F:\BaiduSyncdisk\xgorxg1001\love-page
 
 【规则，必须遵守】
-1. 只允许修改 content/personal.ts。如果我要求调配色，才允许改 src/styles/base.css
-   开头「★ 配色区」里的 4 个颜色变量。
+1. 只允许修改 content/personal.ts 和 content/book.ts。如果我要求调配色，才允许改
+   src/styles/handbook.css 顶部的配色变量。
 2. 严禁修改 astro.config.mjs（里面的 base: '/love-page/' 是全站样式能否加载的关键）、
    .github/workflows/deploy.yml、src/config/ 下的其他文件、以及 .git 目录。
 3. 改完必须先构建：npm run build。构建报错就把报错原文发给我，不要执行推送。

@@ -1,0 +1,88 @@
+---
+import type { Config } from '../../config';
+import { resolveAnniversaries, resolveQuotes, resolveTimers } from '../../config';
+import type { LocaleMessages } from '../../i18n/utils';
+import { BOOK } from '../../../content/book';
+import PageBody from './PageBody.astro';
+
+interface Props {
+  config: Config;
+  messages: LocaleMessages;
+}
+
+const { config, messages } = Astro.props;
+
+const timers = resolveTimers(config);
+const anniversaries = resolveAnniversaries(config);
+const quotes = resolveQuotes(config);
+const wishes = config.wishes ?? [];
+const doneWishes = wishes.filter((w) => w.done).length;
+const wishRate = wishes.length ? Math.round((doneWishes / wishes.length) * 100) : 0;
+const autoStats = [
+  { label: '里程碑节点', value: (config.milestones ?? []).length, icon: '🗓️' },
+  { label: '照片回忆', value: (config.photos ?? []).length, icon: '📷' },
+  { label: '愿望完成率', value: `${wishRate}%`, icon: '✅' },
+];
+const stats = [...autoStats, ...(config.stats ?? [])].slice(0, 5);
+const pages = BOOK.pages;
+const total = pages.length;
+
+function daysSince(dateStr: string): number {
+  const [y, m, d] = (dateStr || '').split('-').map(Number);
+  if (!y || !m || !d) return 0;
+  const now = new Date();
+  const start = new Date(y, m - 1, d);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.max(0, Math.floor((today.getTime() - start.getTime()) / 864e5));
+}
+
+const daysSinceLove = daysSince(config.loveDate);
+---
+
+<section class="book-stage" id="bookStage" data-book-stage data-total={total}>
+  <div class="book" id="book" data-book>
+    {pages.map((page, i) => (
+      <div class="leaf" data-leaf={i} style={`--i:${i};--z:${total - i}`}>
+        <div class="leaf-face leaf-front">
+          <PageBody
+            page={page}
+            book={BOOK}
+            config={config}
+            messages={messages}
+            index={i}
+            total={total}
+            timers={timers}
+            anniversaries={anniversaries}
+            quotes={quotes}
+            stats={stats}
+            daysSinceLove={daysSinceLove}
+          />
+        </div>
+        <div class="leaf-face leaf-back" aria-hidden="true">
+          <div class="back-sheet">
+            <span class="back-mark">❦</span>
+            <span class="back-num">{i + 1}</span>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="book-hud" data-book-hud>
+    <button type="button" class="hud-btn" data-book-prev aria-label="上一页">‹</button>
+    <span class="hud-count"><b data-book-current>1</b> / {total}</span>
+    <button type="button" class="hud-btn" data-book-next aria-label="下一页">›</button>
+  </div>
+
+  <div class="rotate-hint" data-rotate-hint>
+    <p class="rotate-icon" aria-hidden="true">↻</p>
+    <p class="rotate-text">把手机横过来，这一页会更宽敞</p>
+    <button type="button" class="ink-btn" data-rotate-dismiss>就这样看</button>
+  </div>
+</section>
+
+<script>
+  import { initBook } from '../../scripts/book/flip';
+
+  initBook();
+</script>

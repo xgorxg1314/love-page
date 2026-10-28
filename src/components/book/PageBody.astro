@@ -1,0 +1,209 @@
+---
+import type { Config } from '../../config';
+import type { LocaleMessages } from '../../i18n/utils';
+import type { BookDef, BookPageDef } from '../../../content/book';
+
+interface Props {
+  page: BookPageDef;
+  book: BookDef;
+  config: Config;
+  messages: LocaleMessages;
+  index: number;
+  total: number;
+  timers: { label: string; icon: string; date: string }[];
+  anniversaries: { label: string; icon: string; date: string }[];
+  quotes: string[];
+  stats: { label: string; value: string | number; icon?: string }[];
+  daysSinceLove: number;
+}
+
+const { page, book, config, messages, index, total, timers, anniversaries, quotes, stats, daysSinceLove } =
+  Astro.props;
+
+const quotesList = quotes.length ? quotes : ['♥'];
+
+function daysUntilNext(dateStr: string): number {
+  const [y, m, d] = (dateStr || '').split('-').map(Number);
+  if (!y || !m || !d) return 0;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let next = new Date(today.getFullYear(), m - 1, d);
+  if (next.getTime() < today.getTime()) next = new Date(today.getFullYear() + 1, m - 1, d);
+  return Math.round((next.getTime() - today.getTime()) / 864e5);
+}
+
+function prettyDate(dateStr: string): string {
+  const [y, m, d] = (dateStr || '').split('-');
+  return y && m && d ? `${y}.${m}.${d}` : dateStr;
+}
+
+const sticker = page.sticker?.trim();
+const tape = page.tape ?? 'none';
+const wishes = config.wishes ?? [];
+const doneWishes = wishes.filter((w) => w.done).length;
+const wishRate = wishes.length ? Math.round((doneWishes / wishes.length) * 100) : 0;
+const milestoneList = config.milestones ?? [];
+const photoList = config.photos ?? [];
+const quote = quotesList[index % quotesList.length];
+---
+
+<article class:list={['sheet', `sheet--${page.kind}`]} data-page-index={index}>
+  {tape === 'left' || tape === 'both' ? <span class="tape tape--l" aria-hidden="true"></span> : null}
+  {tape === 'right' || tape === 'both' ? <span class="tape tape--r" aria-hidden="true"></span> : null}
+  {sticker ? <span class="sticker" aria-hidden="true">{sticker}</span> : null}
+
+  {page.kind === 'cover' ? (
+    <div class="cover">
+      <p class="cover-kicker">{book.title}</p>
+      <h1 class="cover-names">
+        {config.boy}<span class="cover-heart">♥</span>{config.girl}
+      </h1>
+      {book.subtitle ? <p class="cover-sub">{book.subtitle}</p> : null}
+      <p class="cover-date">始于 {prettyDate(config.loveDate)}</p>
+      {book.hint ? <p class="cover-hint">{book.hint} ›</p> : null}
+    </div>
+  ) : page.kind === 'colophon' ? (
+    <div class="closing">
+      <p class="closing-mark">❦</p>
+      <p class="closing-main">❤ {config.loveDate.split("-")[0]} — {messages.footer?.madeWithLove ?? "用爱制作"} ❤</p>
+      <p class="closing-sub">始于 {prettyDate(config.loveDate)} · 相恋 {daysSinceLove} 天</p>
+      <p class="closing-note">第 {index + 1} 页 / 共 {total} 页</p>
+    </div>
+  ) : (
+    <>
+      <header class="sheet-head">
+        {page.kicker ? <span class="sheet-kicker">{page.kicker}</span> : null}
+        <h2 class="sheet-title">{page.title}</h2>
+      </header>
+
+      <div class="sheet-body">
+        {page.kind === 'today' ? (
+          <div class="pad">
+            <p class="hint-line">下一次重要日子</p>
+            {anniversaries.slice(0, 1).map((a) => (
+              <p class="big-line">
+                <span class="big-num">{daysUntilNext(a.date)}</span>
+                <span class="big-unit">天后是{a.label}</span>
+              </p>
+            ))}
+            <p class="soft-line">把今天也记下来。</p>
+            <button type="button" class="ink-btn" data-open-share>生成纪念卡</button>
+          </div>
+        ) : page.kind === 'stats' ? (
+          <div class="stat-grid">
+            <div class="stat">
+              <span class="stat-icon">💕</span>
+              <span class="stat-value">{daysSinceLove}</span>
+              <span class="stat-label">相恋天数</span>
+            </div>
+            {stats.map((s) => (
+              <div class="stat">
+                <span class="stat-icon">{s.icon ?? '·'}</span>
+                <span class="stat-value">{s.value}</span>
+                <span class="stat-label">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        ) : page.kind === 'timers' ? (
+          <div class="timer-list">
+            {timers.map((t) => (
+              <div class="timer" data-timer-date={t.date}>
+                <p class="timer-label">
+                  {t.icon} {t.label}
+                </p>
+                <p class="timer-main">
+                  <b data-timer-y>{0}</b>
+                  <i>年</i>
+                  <b data-timer-d>{0}</b>
+                  <i>天</i>
+                </p>
+                <p class="timer-hms">
+                  <span data-timer-h>00</span>:<span data-timer-m>00</span>:<span data-timer-s>00</span>
+                </p>
+                <p class="timer-from">自 {prettyDate(t.date)}</p>
+              </div>
+            ))}
+          </div>
+        ) : page.kind === 'story' ? (
+          <ol class="story-list">
+            {milestoneList.map((m) => (
+              <li class="story-item">
+                <span class="story-icon">{m.icon}</span>
+                <div class="story-text">
+                  <p class="story-head">
+                    <span class="story-label">{m.label}</span>
+                    <span class="story-date">{prettyDate(m.date)}</span>
+                  </p>
+                  {m.story ? <p class="story-desc">{m.story}</p> : null}
+                </div>
+              </li>
+            ))}
+            <li class="story-item story-item--now">
+              <span class="story-icon">✨</span>
+              <div class="story-text">
+                <p class="story-head">
+                  <span class="story-label">此刻</span>
+                  <span class="story-date">今天</span>
+                </p>
+                <p class="story-desc">故事还在继续。</p>
+              </div>
+            </li>
+          </ol>
+        ) : page.kind === 'anniversary' ? (
+          <ul class="anni-list">
+            {anniversaries.map((a) => (
+              <li class="anni-item">
+                <span class="anni-icon">{a.icon}</span>
+                <div class="anni-text">
+                  <p class="anni-label">{a.label}</p>
+                  <p class="anni-date">起始于 {prettyDate(a.date)}</p>
+                </div>
+                <span class="anni-days">
+                  <b>{daysUntilNext(a.date)}</b>
+                  <i>天</i>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : page.kind === 'wishes' ? (
+          <>
+            <div class="wish-list">
+              {wishes.map((w) => (
+                <p class:list={['wish', w.done && 'is-done']}>
+                  <span class="wish-mark">{w.done ? '✓' : '○'}</span>
+                  {w.text}
+                </p>
+              ))}
+            </div>
+            <p class="soft-line">已完成 {doneWishes} / {wishes.length} · {wishRate}%</p>
+          </>
+        ) : page.kind === 'gallery' ? (
+          <div class="gallery">
+            {photoList.slice(0, 3).map((p, i) => (
+              <figure class:list={['photo', `photo--${i}`]}>
+                <img src={p.url} alt="" loading="lazy" />
+                {p.caption ? <figcaption>{p.caption}</figcaption> : null}
+              </figure>
+            ))}
+            <button type="button" class="ink-btn" data-open-gallery>
+              打开照片墙
+            </button>
+          </div>
+        ) : page.kind === 'note' ? (
+          <div class="note">
+            {(page.paragraphs ?? []).map((text) => (
+              <p class="note-p">{text}</p>
+            ))}
+            <p class="note-quote">“{quote}”</p>
+          </div>
+        ) : (
+          <div class="pad">
+            <p class="soft-line">这一页还没有内容。</p>
+          </div>
+        )}
+      </div>
+    </>
+  )}
+
+  <span class="sheet-num" aria-hidden="true">{index + 1}</span>
+</article>

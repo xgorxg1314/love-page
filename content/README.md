@@ -48,6 +48,23 @@ git push
 
 ---
 
+## 书上每一页放什么 → `content/book.ts`
+
+网站现在是一本「手账本」，一页一翻。每一页在 `content/book.ts` 的 `pages` 数组里是一段 `{ ... }`：
+
+```ts
+{ kind: 'stats', kicker: '第二章', title: '我们的数字', tape: 'right' }
+```
+
+- **换顺序**：把整段上下移动。
+- **改标题**：改 `title`（大标题）和 `kicker`（上面那行小字）。
+- **加一页自己写的话**：复制一个 `kind: 'note'` 的段落，改 `paragraphs`（一行一段）。
+- **删一页**：删掉整段（连同结尾逗号）。
+- **贴纸/胶带**：`sticker: '🌸'`、`tape: 'left' | 'right' | 'both' | 'none'`。
+- `kind` 只能是：`cover` `today` `stats` `timers` `story` `anniversary` `wishes` `gallery` `note` `colophon`。
+
+翻页方式：电脑上点右侧/按 → 键，手机左右滑动或点右半边；左下角箭头也能翻。
+
 ## 字段对照表
 
 | 想改什么 | 改这个字段 | 效果 |

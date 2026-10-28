@@ -3,18 +3,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Loader from '../../components/Loader.astro';
 import Starfield from '../../components/Starfield.astro';
 import FloatingHearts from '../../components/FloatingHearts.astro';
-import Hero from '../../components/Hero.astro';
-import TodaySummary from '../../components/TodaySummary.astro';
-import Stats from '../../components/Stats.astro';
-import Timeline from '../../components/Timeline.astro';
-import Timers from '../../components/Timers.astro';
-import WishList from '../../components/WishList.astro';
-import Anniversary from '../../components/Anniversary.astro';
+import Book from '../../components/book/Book.astro';
 import Share from '../../components/Share.astro';
 import FloatingActions from '../../components/FloatingActions.astro';
 import Music from '../../components/Music.astro';
 import PhotoWall from '../../components/PhotoWall.astro';
-import Footer from '../../components/Footer.astro';
 import GoogleAnalytics from '../../components/GoogleAnalytics.astro';
 import AppScript from '../../components/AppScript.astro';
 import { CONFIG } from '../../config';
@@ -28,11 +21,12 @@ export function getStaticPaths() {
 }
 
 const { locale } = Astro.params;
-const currentLocale = parseLocaleFromSlug(locale) || 'zh-CN' as LocaleCode;
+const currentLocale = parseLocaleFromSlug(locale) || ('zh-CN' as LocaleCode);
 const messages = getMessages(currentLocale);
 const alternateLocales = LOCALE_CODES.map((code) => ({ code, slug: '' }));
 
 const config = CONFIG;
+const sections = config.sections ?? {};
 ---
 
 <BaseLayout
@@ -47,53 +41,11 @@ const config = CONFIG;
   <Starfield />
   <FloatingHearts />
 
-  <main class="relative z-10 min-h-screen flex flex-col items-center px-3 sm:px-4 py-10 main-content">
-    <div class="book-stack">
-      <div class="page page--cover">
-        <Hero config={config} />
-      </div>
-
-      {config.sections?.todaySummary !== false && (
-        <div class="page">
-          <TodaySummary config={config} messages={messages} />
-        </div>
-      )}
-      {config.sections?.stats !== false && (
-        <div class="page">
-          <Stats config={config} messages={messages} />
-        </div>
-      )}
-      {config.sections?.timers !== false && (
-        <section class="page">
-          <h2 class="section-title reveal w-full">{messages.sections.timers}</h2>
-          <Timers config={config} messages={messages} />
-        </section>
-      )}
-      {config.sections?.timeline !== false && (
-        <section class="page">
-          <h2 class="section-title reveal w-full">{messages.sections.timeline}</h2>
-          <Timeline config={config} messages={messages} />
-        </section>
-      )}
-      {config.sections?.anniversary !== false && (
-        <section class="page">
-          <h2 class="section-title reveal w-full">{messages.sections.anniversary}</h2>
-          <Anniversary config={config} messages={messages} />
-        </section>
-      )}
-      {config.sections?.wishes !== false && config.wishes?.length && (
-        <div class="page">
-          <WishList config={config} messages={messages} />
-        </div>
-      )}
-
-      <div class="page page--colophon">
-        <Footer config={config} messages={messages} />
-      </div>
-    </div>
+  <main class="relative z-10">
+    <Book config={config} messages={messages} />
   </main>
 
-  {config.sections?.photoWall !== false && <PhotoWall config={config} messages={messages} />}
+  {sections.photoWall !== false && <PhotoWall config={config} messages={messages} />}
   <FloatingActions config={config} messages={messages} />
   {config.music.enabled && <Music config={config} messages={messages} />}
   <Share config={config} messages={messages} />

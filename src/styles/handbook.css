@@ -1,0 +1,902 @@
+/* ══════════════════════════════════════════════════════════════
+   手账本：全屏翻页（无滚动）
+   · 每张 .leaf 是一页纸，绕左边书脊翻转
+   · 翻过的纸留在左侧叠成扇形
+   · 字号跟随页面尺寸（container query），横屏竖屏都能装下
+   ══════════════════════════════════════════════════════════════ */
+
+.book-stage {
+  --book-ratio: 0.78;
+  --paper-a: #fffdf8;
+  --paper-b: #fbf2e8;
+  --ink: #4a2f3a;
+  --ink-soft: rgba(74, 47, 58, 0.62);
+  --ink-faint: rgba(74, 47, 58, 0.38);
+  --accent: #c8437a;
+  --accent-2: #7d76d6;
+  --grid: rgba(196, 148, 166, 0.18);
+  --sheet-shadow: 0 26px 48px -26px rgba(90, 48, 74, 0.5), 0 8px 20px -14px rgba(90, 48, 74, 0.34);
+
+  position: relative;
+  z-index: 10;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.4vh, 18px);
+  padding: clamp(8px, 2.2vh, 26px) clamp(8px, 2vw, 22px);
+}
+
+[data-theme='dark'] .book-stage {
+  --paper-a: #251d2c;
+  --paper-b: #1b1522;
+  --ink: #f3e9f1;
+  --ink-soft: rgba(243, 233, 241, 0.66);
+  --ink-faint: rgba(243, 233, 241, 0.4);
+  --accent: #f27ea4;
+  --accent-2: #a49df0;
+  --grid: rgba(255, 255, 255, 0.06);
+  --sheet-shadow: 0 26px 48px -26px rgba(0, 0, 0, 0.8), 0 8px 20px -14px rgba(0, 0, 0, 0.6);
+}
+
+/* 书本容器：横屏矮屏时用更宽的页面 */
+.book {
+  position: relative;
+  width: min(78vw, calc(72svh * var(--book-ratio)), 700px);
+  aspect-ratio: var(--book-ratio);
+  perspective: 2200px;
+  perspective-origin: 50% 45%;
+  transform-style: preserve-3d;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* 桌面上的投影 */
+.book::after {
+  content: '';
+  position: absolute;
+  left: 6%;
+  right: -4%;
+  bottom: -3.2%;
+  height: 12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(70, 32, 56, 0.32), rgba(70, 32, 56, 0));
+  filter: blur(6px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── 一张纸 ── */
+.leaf {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 900ms cubic-bezier(0.33, 0.06, 0.24, 1);
+  container-type: size;
+  will-change: transform;
+}
+
+/* 翻过的页：停在左侧，按序号微微张开成扇形 */
+.leaf.is-flipped {
+  /* 越靠后的纸越往远处缩，形成可见的扇形叠页 */
+  transform: translateX(calc(var(--i) * -3px)) rotateY(calc(-180deg + (var(--i) * 0.9deg)));
+}
+
+.leaf-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  border-radius: 3px 9px 9px 3px;
+}
+
+.leaf-front {
+  box-shadow: 0 8px 16px -14px rgba(90, 48, 74, 0.4);
+}
+
+.leaf-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(180deg, var(--paper-a), var(--paper-b));
+  box-shadow: 0 8px 16px -14px rgba(90, 48, 74, 0.4);
+}
+
+/* 翻过去的纸堆：靠近切口的一侧压暗，像一叠真的纸 */
+.leaf-back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(96, 52, 78, 0.16) 0, rgba(96, 52, 78, 0.04) 14%, rgba(96, 52, 78, 0) 32%);
+  pointer-events: none;
+}
+
+/* 纸背：让翻过去的纸不像空白 */
+.back-sheet {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  color: var(--ink-faint);
+}
+
+.back-mark {
+  font-size: 2.2em;
+  opacity: 0.26;
+}
+
+.back-num {
+  font-family: 'Songti SC', Georgia, serif;
+  font-size: 0.8em;
+  letter-spacing: 0.3em;
+  opacity: 0.45;
+}
+
+/* 翻页过程中的明暗变化 */
+.leaf-front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(58, 24, 42, 0.6), rgba(58, 24, 42, 0) 42%);
+  opacity: 0;
+  transition: opacity 420ms ease;
+  pointer-events: none;
+}
+
+.leaf.is-turning .leaf-front::after {
+  opacity: 0.5;
+}
+
+/* ── 纸面 ── */
+.sheet {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 7.5% 8% 9% 9.5%;
+  color: var(--ink);
+  font-size: clamp(9px, 4.1cqmin, 17px);
+  line-height: 1.65;
+
+  background-color: var(--paper-a);
+  background-image:
+    /* 手账方格 */
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    /* 纸张纹理 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
+    linear-gradient(178deg, var(--paper-a), var(--paper-b));
+  background-size: 2.4em 2.4em, 2.4em 2.4em, auto, auto;
+}
+
+/* 书脊一侧的暗影 */
+.sheet::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6.5%;
+  background: linear-gradient(90deg, rgba(96, 52, 78, 0.16), rgba(96, 52, 78, 0));
+  pointer-events: none;
+}
+
+/* 胶带 */
+.tape {
+  position: absolute;
+  top: -2%;
+  width: 26%;
+  height: 6.4%;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.35) 0 3px, rgba(255, 255, 255, 0) 3px 7px),
+    linear-gradient(135deg, rgba(233, 93, 138, 0.5), rgba(163, 213, 244, 0.5));
+  box-shadow: 0 2px 6px rgba(90, 48, 74, 0.18);
+  opacity: 0.85;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.tape--l {
+  left: 8%;
+  transform: rotate(-4deg);
+}
+
+.tape--r {
+  right: 10%;
+  transform: rotate(5deg);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.35) 0 3px, rgba(255, 255, 255, 0) 3px 7px),
+    linear-gradient(135deg, rgba(163, 213, 244, 0.55), rgba(131, 124, 218, 0.45));
+}
+
+.sticker {
+  position: absolute;
+  top: 6%;
+  right: 7%;
+  font-size: 1.9em;
+  transform: rotate(8deg);
+  filter: drop-shadow(0 2px 3px rgba(90, 48, 74, 0.2));
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ── 页眉 / 页码 ── */
+.sheet-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  padding-bottom: 0.7em;
+  border-bottom: 1px solid var(--ink-faint);
+  margin-bottom: 1em;
+}
+
+.sheet-kicker {
+  font-size: 0.72em;
+  letter-spacing: 0.42em;
+  color: var(--ink-faint);
+}
+
+.sheet-title {
+  font-family: 'Ma Shan Zheng', 'Songti SC', 'Noto Serif SC', Georgia, serif;
+  font-size: 1.75em;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+.sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.8em;
+}
+
+.sheet-num {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3.2%;
+  text-align: center;
+  font-family: 'Songti SC', Georgia, serif;
+  font-size: 0.7em;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+
+/* ── 封面 ── */
+.cover {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9em;
+  text-align: center;
+}
+
+.cover-kicker {
+  font-size: 0.78em;
+  letter-spacing: 0.55em;
+  color: var(--ink-faint);
+}
+
+.cover-names {
+  font-family: 'Ma Shan Zheng', 'Songti SC', serif;
+  font-size: 3.2em;
+  line-height: 1.15;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.cover-heart {
+  display: inline-block;
+  margin: 0 0.18em;
+  font-size: 0.72em;
+  color: var(--accent-2);
+}
+
+.cover-sub {
+  font-size: 1.02em;
+  color: var(--ink-soft);
+  letter-spacing: 0.12em;
+}
+
+.cover-date {
+  font-size: 0.8em;
+  color: var(--ink-faint);
+  letter-spacing: 0.16em;
+}
+
+.cover-hint {
+  margin-top: 1.4em;
+  font-size: 0.85em;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+  animation: hintPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── 版权页 ── */
+.closing {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  text-align: center;
+}
+
+.closing-mark {
+  font-size: 1.8em;
+  color: var(--accent-2);
+}
+
+.closing-main {
+  font-size: 1em;
+  letter-spacing: 0.2em;
+}
+
+.closing-sub,
+.closing-note {
+  font-size: 0.78em;
+  color: var(--ink-faint);
+  letter-spacing: 0.12em;
+}
+
+/* ── 各个内容页 ── */
+.pad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  text-align: center;
+  align-items: center;
+}
+
+.hint-line {
+  font-size: 0.82em;
+  letter-spacing: 0.24em;
+  color: var(--ink-faint);
+}
+
+.big-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  justify-content: center;
+}
+
+.big-num {
+  font-family: 'Dancing Script', cursive;
+  font-size: 3.1em;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.big-unit {
+  font-size: 0.95em;
+  color: var(--ink-soft);
+}
+
+.soft-line {
+  font-size: 0.8em;
+  color: var(--ink-faint);
+  letter-spacing: 0.08em;
+}
+
+.ink-btn {
+  align-self: center;
+  margin-top: 0.5em;
+  padding: 0.5em 1.5em;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  font-size: 0.85em;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.ink-btn:hover {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
+}
+
+/* 数字 */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55em 0.9em;
+  width: 100%;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1em;
+  padding: 0.55em 0.3em;
+  border: 1px dashed var(--ink-faint);
+  border-radius: 0.6em;
+}
+
+.stat-icon {
+  font-size: 1.05em;
+}
+
+.stat-value {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.85em;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.74em;
+  color: var(--ink-soft);
+  letter-spacing: 0.08em;
+}
+
+/* 计时器 */
+.timer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  width: 100%;
+}
+
+.timer {
+  border: 1px dashed var(--ink-faint);
+  border-radius: 0.7em;
+  padding: 0.7em 0.9em;
+  text-align: center;
+}
+
+.timer-label {
+  font-size: 0.86em;
+  letter-spacing: 0.16em;
+  color: var(--ink-soft);
+}
+
+.timer-main {
+  font-size: 1.5em;
+  color: var(--accent);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.18em;
+}
+
+.timer-main i {
+  font-style: normal;
+  font-size: 0.55em;
+  color: var(--ink-soft);
+}
+
+.timer-hms {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.15em;
+  color: var(--accent-2);
+  letter-spacing: 0.08em;
+}
+
+.timer-from {
+  font-size: 0.7em;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+}
+
+/* 故事 */
+.story-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85em;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.story-item {
+  display: flex;
+  gap: 0.7em;
+  align-items: flex-start;
+}
+
+.story-icon {
+  font-size: 1.15em;
+  line-height: 1.3;
+}
+
+.story-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+}
+
+.story-label {
+  font-size: 0.98em;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.story-date {
+  font-size: 0.72em;
+  color: var(--ink-faint);
+  letter-spacing: 0.08em;
+}
+
+.story-desc {
+  font-size: 0.82em;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.story-item--now .story-label {
+  color: var(--accent-2);
+}
+
+/* 纪念日 */
+.anni-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+}
+
+.anni-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.55em 0.7em;
+  border-radius: 0.6em;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.anni-icon {
+  font-size: 1.1em;
+}
+
+.anni-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.anni-label {
+  font-size: 0.92em;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+}
+
+.anni-date {
+  font-size: 0.7em;
+  color: var(--ink-faint);
+}
+
+.anni-days {
+  display: flex;
+  align-items: baseline;
+  gap: 0.15em;
+  color: var(--accent);
+}
+
+.anni-days b {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.6em;
+  line-height: 1;
+}
+
+.anni-days i {
+  font-style: normal;
+  font-size: 0.68em;
+  color: var(--ink-soft);
+}
+
+/* 愿望 */
+.wish-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+}
+
+.wish {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  font-size: 0.95em;
+  color: var(--ink);
+}
+
+.wish-mark {
+  color: var(--accent);
+  font-size: 0.9em;
+}
+
+.wish.is-done {
+  color: var(--ink-faint);
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-faint);
+}
+
+.wish.is-done .wish-mark {
+  color: var(--accent-2);
+}
+
+/* 相册 */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5em;
+  align-items: center;
+}
+
+.gallery .ink-btn {
+  grid-column: 1 / -1;
+}
+
+.photo {
+  margin: 0;
+  transform: rotate(-1.6deg);
+  background: #fff;
+  padding: 3%;
+  box-shadow: 0 6px 12px -8px rgba(90, 48, 74, 0.5);
+}
+
+.photo--1 {
+  transform: rotate(1.8deg);
+}
+
+.photo {
+  background: linear-gradient(135deg, #f6e9ef, #eef1fb);
+}
+
+.photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: linear-gradient(135deg, #f6e9ef, #eef1fb);
+}
+
+.photo figcaption {
+  font-size: 0.62em;
+  text-align: center;
+  color: var(--ink-soft);
+  padding-top: 0.2em;
+}
+
+/* note 页 */
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85em;
+}
+
+.note-p {
+  font-size: 0.95em;
+  line-height: 1.95;
+  color: var(--ink);
+  text-indent: 1.6em;
+}
+
+.note-quote {
+  margin-top: 0.8em;
+  text-align: center;
+  font-family: 'Ma Shan Zheng', serif;
+  font-size: 1.15em;
+  color: var(--accent-2);
+  letter-spacing: 0.1em;
+}
+
+/* ── 底部控制条 ── */
+.book-hud {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  color: rgba(120, 74, 96, 0.85);
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+}
+
+[data-theme='dark'] .book-hud {
+  color: rgba(243, 233, 241, 0.6);
+}
+
+.hud-btn {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: 1px solid rgba(160, 110, 132, 0.35);
+  background: rgba(255, 255, 255, 0.5);
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.hud-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.hud-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.hud-count {
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5em;
+  text-align: center;
+}
+
+.hud-count b {
+  font-size: 1.15em;
+}
+
+/* ── 竖屏提示 ── */
+.rotate-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(38, 18, 32, 0.72);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  text-align: center;
+  padding: 2rem;
+}
+
+.rotate-hint.is-dismissed {
+  display: none !important;
+}
+
+.rotate-icon {
+  font-size: 2.4rem;
+  animation: rotateNudge 2.4s ease-in-out infinite;
+}
+
+@keyframes rotateNudge {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(90deg);
+  }
+}
+
+.rotate-text {
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+}
+
+.rotate-hint .ink-btn {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* 竖屏手机才提示横屏 */
+@media (orientation: portrait) and (max-width: 860px) {
+  .rotate-hint:not(.is-dismissed) {
+    display: flex;
+  }
+}
+
+/* 横屏矮屏：页面改成横向铺开 */
+@media (orientation: landscape) and (max-height: 620px) {
+  .book-stage {
+    --book-ratio: 1.74;
+  }
+
+  /* 横屏手机：让页面铺满可用宽度 */
+  .book {
+    width: min(92vw, calc(88svh * var(--book-ratio)));
+    margin-left: 0;
+  }
+
+  .sheet {
+    font-size: clamp(9px, 3.4cqmin, 15px);
+  }
+
+  .sheet {
+    padding: 4.5% 6% 7% 6.5%;
+  }
+
+  .sheet-head {
+    margin-bottom: 0.6em;
+    padding-bottom: 0.45em;
+  }
+
+  .sheet-body {
+    justify-content: flex-start;
+  }
+
+  .cover-names {
+    font-size: 2.6em;
+  }
+
+  /* 横屏矮页：内容排得更紧，避免被裁掉 */
+  .stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4em 0.6em;
+  }
+
+  .stat {
+    padding: 0.35em 0.2em;
+  }
+
+  .stat-value {
+    font-size: 1.5em;
+  }
+
+  .timer {
+    padding: 0.45em 0.7em;
+  }
+
+  .timer-list {
+    gap: 0.5em;
+  }
+
+  .story-list {
+    gap: 0.55em;
+  }
+
+  .sheet-title {
+    font-size: 1.45em;
+  }
+}
+
+/* 平板/桌面适中高度 */
+@media (min-width: 900px) {
+  .book {
+    margin-left: 5vw;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 700px) {
+  .book-stage {
+    --book-ratio: 0.76;
+  }
+}
+
+/* 减少动态 */
+@media (prefers-reduced-motion: reduce) {
+  .leaf {
+    transition: none;
+  }
+
+  .cover-hint,
+  .rotate-icon {
+    animation: none;
+  }
+}
