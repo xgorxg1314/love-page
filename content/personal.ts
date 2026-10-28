@@ -155,7 +155,7 @@ export const PERSONAL: PersonalContent = {
      也可以直接填网上的完整地址 https://...
      ══════════════════════════════════════════════════════════════ */
   photos: [
-    { url: 'https://images.unsplash.com/photo-1519741497676-611481863552?w=400&h=400&fit=crop', caption: '婚礼' },
+    { url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&h=400&fit=crop', caption: '婚礼' },
     { url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=400&h=400&fit=crop', caption: '相伴' },
     { url: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=400&fit=crop', caption: '牵手' },
   ],

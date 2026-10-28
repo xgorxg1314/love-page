@@ -4,6 +4,7 @@ import Loader from '../../components/Loader.astro';
 import Starfield from '../../components/Starfield.astro';
 import FloatingHearts from '../../components/FloatingHearts.astro';
 import Book from '../../components/book/Book.astro';
+import PhotoFlipbook from '../../components/book/PhotoFlipbook.astro';
 import Share from '../../components/Share.astro';
 import FloatingActions from '../../components/FloatingActions.astro';
 import Music from '../../components/Music.astro';
@@ -43,6 +44,7 @@ const sections = config.sections ?? {};
 
   <main class="relative z-10">
     <Book config={config} messages={messages} />
+    <PhotoFlipbook config={config} />
   </main>
 
   {sections.photoWall !== false && <PhotoWall config={config} messages={messages} />}

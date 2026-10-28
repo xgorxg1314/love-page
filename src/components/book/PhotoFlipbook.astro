@@ -1,0 +1,301 @@
+---
+/**
+ * 照片翻书：一本会自己翻页的相册
+ *
+ * 结构：
+ *   .fb-spread  左页 + 右页两张静态照片（底页）
+ *   .fb-leaf    一张纸，正反两面都印着右边那张照片，
+ *               每 2.6 秒绕书脊翻到左边，翻完瞬间归位再换下一组
+ *
+ * 因为翻过去那张纸的背面 = 原来右边那张，所以落定后左页就是它，
+ * 右页同时换成下一张，看起来就是「一页一页往后翻」。
+ */
+import type { Config } from '../../config';
+
+interface Props {
+  config: Config;
+  /** 区块标题，传空字符串就不显示 */
+  title?: string;
+}
+
+const { config, title = '翻一翻我们的照片' } = Astro.props;
+
+const urls = (config.photos ?? []).map((p) => p.url).filter(Boolean);
+/** 少于两张就翻不起来，直接不渲染 */
+const canFlip = urls.length >= 2;
+const photosJson = JSON.stringify(urls);
+---
+
+{
+  canFlip ? (
+    <section class="flipbook-section">
+      {title ? <h2 class="flipbook-title">{title}</h2> : null}
+      <div class="flipbook" data-flipbook data-photos={photosJson}>
+        <div class="fb-book">
+          <div class="fb-spread">
+            <figure class="fb-page fb-page--left">
+              <img src={urls[0]} alt="" loading="lazy" data-fb-left />
+            </figure>
+            <figure class="fb-page fb-page--right">
+              <img src={urls[1]} alt="" loading="lazy" data-fb-right />
+            </figure>
+          </div>
+          <div class="fb-leaf" data-fb-leaf aria-hidden="true">
+            <div class="fb-face fb-face--front">
+              <img src={urls[1]} alt="" loading="lazy" data-fb-front />
+            </div>
+            <div class="fb-face fb-face--back">
+              <img src={urls[1]} alt="" loading="lazy" data-fb-back />
+            </div>
+          </div>
+          <span class="fb-spine" aria-hidden="true" />
+        </div>
+      </div>
+    </section>
+  ) : null
+}
+
+<style>
+  .flipbook-section {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1rem, 3vh, 1.8rem);
+    padding: clamp(1.5rem, 5vh, 3.5rem) 1rem clamp(2.5rem, 7vh, 4.5rem);
+  }
+
+  .flipbook-title {
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: rgba(255, 143, 171, 0.9);
+    text-align: center;
+  }
+
+  :global([data-theme='light']) .flipbook-title {
+    color: #a3315d;
+  }
+
+  .flipbook {
+    --fb-paper: #fffdf8;
+    --fb-edge: rgba(120, 72, 96, 0.16);
+    width: min(88vw, 560px);
+  }
+
+  :global([data-theme='dark']) .flipbook {
+    --fb-paper: #251d2c;
+    --fb-edge: rgba(0, 0, 0, 0.5);
+  }
+
+  .fb-book {
+    position: relative;
+    aspect-ratio: 1.5;
+    perspective: 2400px;
+    perspective-origin: 50% 50%;
+    border-radius: 4px 10px 10px 4px;
+    box-shadow: 0 26px 46px -28px rgba(90, 48, 74, 0.5), 0 6px 14px -10px rgba(90, 48, 74, 0.3);
+  }
+
+  /* 底页：左右两张照片 */
+  .fb-spread {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    border-radius: 4px 10px 10px 4px;
+    overflow: hidden;
+    background: var(--fb-paper);
+  }
+
+  .fb-page {
+    position: relative;
+    width: 50%;
+    height: 100%;
+    margin: 0;
+    padding: 4.5%;
+    background: var(--fb-paper);
+  }
+
+  .fb-page img,
+  .fb-face img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .fb-page--left {
+    padding-right: 3.4%;
+  }
+
+  .fb-page--right {
+    padding-left: 3.4%;
+  }
+
+  /* 书脊压痕 */
+  .fb-spine {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 4%;
+    transform: translateX(-50%);
+    background: linear-gradient(
+      90deg,
+      rgba(96, 52, 78, 0) 0%,
+      rgba(96, 52, 78, 0.16) 42%,
+      rgba(96, 52, 78, 0.22) 50%,
+      rgba(96, 52, 78, 0.16) 58%,
+      rgba(96, 52, 78, 0) 100%
+    );
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* 翻动的那张纸：只占右半边，绕正中书脊转 */
+  .fb-leaf {
+    position: absolute;
+    inset: 0 0 0 50%;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transform: rotateY(0deg);
+    transition: transform 1.25s cubic-bezier(0.42, 0.04, 0.2, 1);
+    will-change: transform;
+    z-index: 4;
+  }
+
+  .fb-leaf.is-flipping {
+    transform: rotateY(-180deg);
+  }
+
+  /* 归位：瞬间回到右边且不可见，肉眼看不到这一下 */
+  .fb-leaf.is-reset {
+    transition: none;
+    transform: rotateY(0deg);
+    opacity: 0;
+  }
+
+  .fb-face {
+    position: absolute;
+    inset: 0;
+    padding: 4.5% 4.5% 4.5% 3.4%;
+    background: var(--fb-paper);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+    border-radius: 0 10px 10px 0;
+  }
+
+  .fb-face--back {
+    transform: rotateY(180deg);
+    padding: 4.5% 3.4% 4.5% 4.5%;
+    border-radius: 10px 0 0 10px;
+  }
+
+  /* 翻动时纸面上的明暗变化 */
+  .fb-face::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(58, 24, 42, 0.35), rgba(58, 24, 42, 0) 46%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .fb-leaf.is-flipping .fb-face--front::after {
+    opacity: 0.55;
+  }
+
+  .fb-leaf.is-flipping .fb-face--back::after {
+    opacity: 0.3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fb-leaf {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function initFlipbook() {
+    document.querySelectorAll<HTMLElement>('[data-flipbook]').forEach((root) => {
+      const urls: string[] = JSON.parse(root.dataset.photos || '[]');
+      if (urls.length < 2) return;
+
+      const leaf = root.querySelector<HTMLElement>('[data-fb-leaf]');
+      const left = root.querySelector<HTMLImageElement>('[data-fb-left]');
+      const right = root.querySelector<HTMLImageElement>('[data-fb-right]');
+      const front = root.querySelector<HTMLImageElement>('[data-fb-front]');
+      const back = root.querySelector<HTMLImageElement>('[data-fb-back]');
+      if (!leaf || !left || !right || !front || !back) return;
+
+      const total = urls.length;
+      const STEP = 2600;
+      let index = 0;
+      let busy = false;
+      let timer = 0;
+
+      /** 左页 = urls[index]，右页和那张纸 = urls[index + 1] */
+      const paint = () => {
+        left.src = urls[index % total];
+        right.src = urls[(index + 1) % total];
+        front.src = urls[(index + 1) % total];
+        back.src = urls[(index + 1) % total];
+      };
+
+      const flip = () => {
+        if (busy) return;
+        busy = true;
+        // 先把右页换成下下张：此刻它被那张纸盖着，看不见
+        right.src = urls[(index + 2) % total];
+        leaf.classList.add('is-flipping');
+      };
+
+      leaf.addEventListener('transitionend', (event) => {
+        const e = event as TransitionEvent;
+        if (e.propertyName !== 'transform') return;
+        if (!leaf.classList.contains('is-flipping')) return;
+        // 纸已经落到左边，此时左页应当就是它背面那张
+        index += 1;
+        leaf.classList.remove('is-flipping');
+        leaf.classList.add('is-reset');
+        paint();
+        // 强制回流后再恢复可见，避免归位被动画捕捉到
+        void leaf.offsetWidth;
+        requestAnimationFrame(() => {
+          leaf.classList.remove('is-reset');
+          busy = false;
+        });
+      });
+
+      const stop = () => {
+        if (timer) {
+          window.clearInterval(timer);
+          timer = 0;
+        }
+      };
+
+      const start = () => {
+        stop();
+        timer = window.setInterval(flip, STEP);
+      };
+
+      paint();
+
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        start();
+      }
+
+      // 鼠标移上去 / 键盘聚焦时停住，方便看照片
+      root.addEventListener('pointerenter', stop);
+      root.addEventListener('pointerleave', start);
+      root.addEventListener('focusin', stop);
+      root.addEventListener('focusout', start);
+    });
+  }
+
+  initFlipbook();
+</script>

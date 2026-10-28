@@ -953,7 +953,7 @@
 
 /* ── 竖屏提示 ── */
 .rotate-hint {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 60;
   display: none;
