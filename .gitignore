@@ -151,3 +151,6 @@ config.test.*.json
 .agents/
 docs/plans/
 .claude/launch.json
+
+# 百度网盘同步临时文件
+*.baiduyun.uploading.cfg
