@@ -14,7 +14,8 @@
   --ink-faint: rgba(74, 47, 58, 0.38);
   --accent: #c8437a;
   --accent-2: #7d76d6;
-  --grid: rgba(196, 148, 166, 0.18);
+  --grid: rgba(196, 148, 166, 0.16);
+  --gold-line: rgba(178, 130, 84, 0.42);
   --sheet-shadow: 0 26px 48px -26px rgba(90, 48, 74, 0.5), 0 8px 20px -14px rgba(90, 48, 74, 0.34);
 
   position: relative;
@@ -36,7 +37,8 @@
   --ink-faint: rgba(243, 233, 241, 0.4);
   --accent: #f27ea4;
   --accent-2: #a49df0;
-  --grid: rgba(255, 255, 255, 0.06);
+  --grid: rgba(255, 255, 255, 0.05);
+  --gold-line: rgba(228, 198, 158, 0.34);
   --sheet-shadow: 0 26px 48px -26px rgba(0, 0, 0, 0.8), 0 8px 20px -14px rgba(0, 0, 0, 0.6);
 }
 
@@ -165,13 +167,100 @@
 
   background-color: var(--paper-a);
   background-image:
+    /* 顶部柔光 */
+    radial-gradient(150% 90% at 50% -12%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0) 58%),
+    /* 纸面暗角 */
+    radial-gradient(130% 100% at 50% 118%, rgba(120, 72, 96, 0.1), rgba(120, 72, 96, 0) 62%),
     /* 手账方格 */
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px),
     /* 纸张纹理 */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"),
     linear-gradient(178deg, var(--paper-a), var(--paper-b));
-  background-size: 2.4em 2.4em, 2.4em 2.4em, auto, auto;
+  background-size: auto, auto, 2.4em 2.4em, 2.4em 2.4em, auto, auto;
+  box-shadow: inset 0 0 3.2em rgba(120, 72, 96, 0.055);
+}
+
+/* 内嵌金色细边：文具感的关键 */
+.sheet::after {
+  content: '';
+  position: absolute;
+  inset: 3.4% 3.8% 4.4% 4%;
+  border: 1px solid var(--gold-line);
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* 四角花饰 */
+.corner {
+  position: absolute;
+  width: 1.5em;
+  height: 1.5em;
+  border-color: var(--gold-line);
+  border-style: solid;
+  border-width: 0;
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.corner--tl {
+  top: 2.5%;
+  left: 2.9%;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.corner--tr {
+  top: 2.5%;
+  right: 2.7%;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+
+.corner--bl {
+  bottom: 3.4%;
+  left: 2.9%;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+
+.corner--br {
+  bottom: 3.4%;
+  right: 2.7%;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/* 书签丝带 */
+.ribbon {
+  position: absolute;
+  top: -0.6%;
+  right: 47%;
+  width: 0.78em;
+  height: 3.5em;
+  background: linear-gradient(180deg, #e7a3bd 0%, #d2739a 52%, #b8557c 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 86%, 50% 100%, 0 86%);
+  box-shadow: 0.1em 0.16em 0.45em rgba(120, 40, 70, 0.22);
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* 手绘涂鸦 */
+.doodle {
+  position: absolute;
+  left: 4.4%;
+  bottom: 6%;
+  width: 3em;
+  height: 3em;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%23c8437a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M30 50c-9-6.5-18-14-18-23a10 10 0 0 1 18-4.4A10 10 0 0 1 48 27c0 9-9 16.5-18 23z'/%3E%3Cpath d='M50 12l1.8 4.6 4.6 1.8-4.6 1.8L50 25l-1.8-4.8L43.6 18.4l4.6-1.8z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.38;
+  pointer-events: none;
+  transform: rotate(-8deg);
+  z-index: 2;
 }
 
 /* 书脊一侧的暗影 */
@@ -189,12 +278,14 @@
 /* 胶带 */
 .tape {
   position: absolute;
-  top: -2%;
-  width: 26%;
-  height: 6.4%;
+  top: 1.3%;
+  width: 24%;
+  height: 5.4%;
   background:
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.35) 0 3px, rgba(255, 255, 255, 0) 3px 7px),
     linear-gradient(135deg, rgba(233, 93, 138, 0.5), rgba(163, 213, 244, 0.5));
+  clip-path: polygon(0 8%, 11% 1%, 26% 9%, 41% 2%, 57% 10%, 72% 3%, 88% 9%, 100% 4%,
+      100% 93%, 87% 100%, 71% 91%, 55% 99%, 39% 92%, 23% 100%, 9% 92%, 0 97%);
   box-shadow: 0 2px 6px rgba(90, 48, 74, 0.18);
   opacity: 0.85;
   z-index: 3;
@@ -216,9 +307,9 @@
 
 .sticker {
   position: absolute;
-  top: 6%;
-  right: 7%;
-  font-size: 1.9em;
+  top: 9%;
+  right: 6.5%;
+  font-size: 1.75em;
   transform: rotate(8deg);
   filter: drop-shadow(0 2px 3px rgba(90, 48, 74, 0.2));
   z-index: 3;
@@ -334,6 +425,37 @@
   50% {
     opacity: 1;
   }
+}
+
+/* ── 封面：稍微隆重的米金纸 ── */
+.sheet--cover {
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 60%),
+    radial-gradient(90% 70% at 100% 100%, rgba(196, 148, 190, 0.16), rgba(196, 148, 190, 0) 60%),
+    radial-gradient(90% 70% at 0% 100%, rgba(220, 180, 140, 0.14), rgba(220, 180, 140, 0) 60%),
+    linear-gradient(165deg, #fffaf2 0%, #fbf1ea 52%, #f7ecf3 100%);
+}
+
+.sheet--cover::after {
+  content: none;
+}
+
+.sheet--cover .cover {
+  border: 1px solid var(--gold-line);
+  border-radius: 3px;
+  padding: 1.6em 1.1em;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+.sheet--cover .cover-names {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.sheet--cover .ribbon,
+.sheet--colophon .ribbon,
+.sheet--cover .doodle,
+.sheet--colophon .doodle {
+  display: none;
 }
 
 /* ── 版权页 ── */

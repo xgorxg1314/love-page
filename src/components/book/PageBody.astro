@@ -48,9 +48,15 @@ const quote = quotesList[index % quotesList.length];
 ---
 
 <article class:list={['sheet', `sheet--${page.kind}`]} data-page-index={index}>
-  {tape === 'left' || tape === 'both' ? <span class="tape tape--l" aria-hidden="true"></span> : null}
+  <span class="corner corner--tl" aria-hidden="true"></span>
+  <span class="corner corner--tr" aria-hidden="true"></span>
+  <span class="corner corner--bl" aria-hidden="true"></span>
+  <span class="corner corner--br" aria-hidden="true"></span>
+  <span class="ribbon" aria-hidden="true"></span>
+    {tape === 'left' || tape === 'both' ? <span class="tape tape--l" aria-hidden="true"></span> : null}
   {tape === 'right' || tape === 'both' ? <span class="tape tape--r" aria-hidden="true"></span> : null}
   {sticker ? <span class="sticker" aria-hidden="true">{sticker}</span> : null}
+  <span class="doodle" aria-hidden="true"></span>
 
   {page.kind === 'cover' ? (
     <div class="cover">
